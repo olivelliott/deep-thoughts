@@ -13,7 +13,7 @@ const SingleThought = props => {
 
   const thought = data?.thought || {};
 
-  if (loading) <div>Loading...</div>
+  if (loading) <div>Loading...</div>;
 
   return (
     <div>
