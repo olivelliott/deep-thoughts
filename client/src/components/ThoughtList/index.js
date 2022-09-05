@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 const ThoughtList = ({ thoughts, title }) => {
   if (!thoughts.length) {
@@ -9,18 +10,27 @@ const ThoughtList = ({ thoughts, title }) => {
     <div>
       <h3>{title}</h3>
       {thoughts &&
-        thoughts.map((thought) => (
-          <div key={thought._id} className="card mb-3">
+        thoughts.map(({ _id, username, createdAt, reactionCount, thoughtText }) => (
+          <div key={_id} className="card mb-3">
             <p className="card-header">
-              {thought.username}
-              thought on {thought.createdAt}
+              <Link
+                to={`/profile/${username}`}
+                style={{ fontWeight: 700 }}
+                className="text-light"
+              >
+                {username}
+              </Link>
+              {""}
+              thought on {createdAt}
             </p>
             <div className="card-body">
-              <p>{thought.thoughtText}</p>
-              <p className="mb-0">
-                Reactions: {thought.reactionCount} || Click to{" "}
-                {thought.reactionCount ? "see" : "start"} the discussion!
-              </p>
+              <Link to={`/thought/${_id}`}>
+                <p>{thoughtText}</p>
+                <p className="mb-0">
+                  Reactions: {reactionCount} || Click to{" "}
+                  {reactionCount ? "see" : "start"} the discussion!
+                </p>
+              </Link>
             </div>
           </div>
         ))}
