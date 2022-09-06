@@ -1,16 +1,16 @@
-import React, { useState } from "react";
-import { useMutation } from "@apollo/client";
+import React, { useState } from 'react';
 
-import { ADD_THOUGHT } from "../../utils/mutations";
+import { useMutation } from '@apollo/client';
+import { ADD_THOUGHT } from '../../utils/mutations';
 import { QUERY_THOUGHTS, QUERY_ME } from '../../utils/queries';
 
 const ThoughtForm = () => {
-  const [thoughtText, setText] = useState("");
+  const [thoughtText, setText] = useState('');
   const [characterCount, setCharacterCount] = useState(0);
 
   const [addThought, { error }] = useMutation(ADD_THOUGHT, {
     update(cache, { data: { addThought } }) {
-  
+      
         // could potentially not exist yet, so wrap in a try/catch
       try {
         // update me array's cache
@@ -22,7 +22,7 @@ const ThoughtForm = () => {
       } catch (e) {
         console.warn("First thought insertion by user!")
       }
-  
+
       // update thought array's cache
       const { thoughts } = cache.readQuery({ query: QUERY_THOUGHTS });
       cache.writeQuery({
@@ -31,7 +31,8 @@ const ThoughtForm = () => {
       });
     }
   });
-  
+
+  // update state based on form input changes
   const handleChange = (event) => {
     if (event.target.value.length <= 280) {
       setText(event.target.value);
@@ -39,13 +40,17 @@ const ThoughtForm = () => {
     }
   };
 
+  // submit form
   const handleFormSubmit = async (event) => {
     event.preventDefault();
+
     try {
       await addThought({
         variables: { thoughtText },
       });
-      setText("");
+
+      // clear form value
+      setText('');
       setCharacterCount(0);
     } catch (e) {
       console.error(e);
@@ -55,7 +60,7 @@ const ThoughtForm = () => {
   return (
     <div>
       <p
-        className={`m-0 ${characterCount === 280 || error ? "text-error" : ""}`}
+        className={`m-0 ${characterCount === 280 || error ? 'text-error' : ''}`}
       >
         Character Count: {characterCount}/280
         {error && <span className="ml-2">Something went wrong...</span>}
@@ -67,8 +72,8 @@ const ThoughtForm = () => {
         <textarea
           placeholder="Here's a new thought..."
           value={thoughtText}
-          onChange={handleChange}
           className="form-input col-12 col-md-9"
+          onChange={handleChange}
         ></textarea>
         <button className="btn col-12 col-md-3" type="submit">
           Submit
