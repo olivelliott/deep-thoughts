@@ -1,25 +1,64 @@
 import React, { useState } from "react";
+import { useMutation } from "@apollo/client";
+
+import { ADD_THOUGHT } from "../../utils/mutations";
+import { QUERY_THOUGHTS, QUERY_ME } from '../../utils/queries';
 
 const ThoughtForm = () => {
   const [thoughtText, setText] = useState("");
   const [characterCount, setCharacterCount] = useState(0);
 
-  const handleChange = (e) => {
-    if (e.target.value.length <= 280) {
-      setText(e.target.value);
-      setCharacterCount(e.target.value.length);
+  const [addThought, { error }] = useMutation(ADD_THOUGHT, {
+    update(cache, { data: { addThought } }) {
+  
+        // could potentially not exist yet, so wrap in a try/catch
+      try {
+        // update me array's cache
+        const { me } = cache.readQuery({ query: QUERY_ME });
+        cache.writeQuery({
+          query: QUERY_ME,
+          data: { me: { ...me, thoughts: [...me.thoughts, addThought] } },
+        });
+      } catch (e) {
+        console.warn("First thought insertion by user!")
+      }
+  
+      // update thought array's cache
+      const { thoughts } = cache.readQuery({ query: QUERY_THOUGHTS });
+      cache.writeQuery({
+        query: QUERY_THOUGHTS,
+        data: { thoughts: [addThought, ...thoughts] },
+      });
+    }
+  });
+  
+  const handleChange = (event) => {
+    if (event.target.value.length <= 280) {
+      setText(event.target.value);
+      setCharacterCount(event.target.value.length);
     }
   };
 
-  const handleFormSubmit = async e => {
-    e.preventDefault();
-    setText('');
-    setCharacterCount(0);
+  const handleFormSubmit = async (event) => {
+    event.preventDefault();
+    try {
+      await addThought({
+        variables: { thoughtText },
+      });
+      setText("");
+      setCharacterCount(0);
+    } catch (e) {
+      console.error(e);
+    }
   };
+
   return (
     <div>
-      <p className={`m-0 ${characterCount === 280 ? "text-error" : ""}`}>
+      <p
+        className={`m-0 ${characterCount === 280 || error ? "text-error" : ""}`}
+      >
         Character Count: {characterCount}/280
+        {error && <span className="ml-2">Something went wrong...</span>}
       </p>
       <form
         className="flex-row justify-center justify-space-between-md align-stretch"
